@@ -1,13 +1,21 @@
 package com.loki.opt.viewModel
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.ExistingWorkPolicy
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.WorkManager
 import com.loki.opt.data.database.Schedule
 import com.loki.opt.data.repository.OptRepository
+import com.loki.opt.worker.LockScreenWorker
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 @HiltViewModel
@@ -24,7 +32,7 @@ class OptViewModel @Inject constructor(
 
     fun onScheduleEvent(scheduleEvent: ScheduleEvent) {
         when(scheduleEvent) {
-            is ScheduleEvent.OnSchedule -> saveSchedule()
+            is ScheduleEvent.OnSchedule -> saveSchedule(scheduleEvent.context)
             is ScheduleEvent.OnEditSchedule -> {
                 _state.value = _state.value.copy(
                     id = scheduleEvent.schedule.id,
@@ -51,17 +59,25 @@ class OptViewModel @Inject constructor(
         }
     }
 
-    private fun saveSchedule() {
+    private fun saveSchedule(context: Context) {
         viewModelScope.launch {
             optRepository.saveSchedule(
                 Schedule(
                     id = _state.value.id,
                     title = _state.value.title,
                     offTime = _state.value.offTime,
-                    isEnabled = _state.value.isEnabled
+                    isEnabled = true
                 )
             )
         }
+
+        val lockScreenRequest = OneTimeWorkRequestBuilder<LockScreenWorker>().build()
+        val workManager = WorkManager.getInstance(context)
+        workManager.beginUniqueWork(
+            "lock screen ${_state.value.offTime}",
+            ExistingWorkPolicy.APPEND_OR_REPLACE,
+            lockScreenRequest
+        ).enqueue()
     }
 
     private fun deleteSchedule() {
@@ -105,7 +121,7 @@ class OptViewModel @Inject constructor(
 
 sealed class ScheduleEvent {
 
-    object OnSchedule: ScheduleEvent()
+    data class OnSchedule(val context: Context): ScheduleEvent()
     data class OnEditSchedule(val schedule: Schedule): ScheduleEvent()
     data class OnEnableSchedule(val isEnabled: Boolean, val scheduleId: Int): ScheduleEvent()
     object OnDeleteSchedule: ScheduleEvent()
