@@ -1,56 +1,82 @@
 package com.loki.opt.worker
 
 import android.content.Context
+import androidx.compose.runtime.mutableStateOf
 import androidx.core.app.NotificationCompat
 import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.ForegroundInfo
 import androidx.work.WorkerParameters
+import com.loki.opt.MusicManager
 import com.loki.opt.PolicyManager
 import com.loki.opt.R
+import com.loki.opt.data.database.Schedule
+import com.loki.opt.data.datastore.DataStoreStorage
 import com.loki.opt.data.repository.OptRepository
 import com.loki.opt.util.ext.toSingleDigit
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import java.util.Calendar
 
 @HiltWorker
 class LockScreenWorker @AssistedInject constructor(
     private val optRepository: OptRepository,
-    private val manager: PolicyManager,
+    private val datastore: DataStoreStorage,
+    private val policyManager: PolicyManager,
+    private val musicManager: MusicManager,
     @Assisted val context: Context,
     @Assisted params: WorkerParameters
 ): CoroutineWorker(context, params) {
 
-    override suspend fun getForegroundInfo(): ForegroundInfo {
-        return notification()
+    private val schedules = mutableStateOf<List<Schedule>>(emptyList())
+
+    init {
+        getSchedules()
     }
 
     override suspend fun doWork(): Result {
 
-        if (manager.isActive()) {
+        if (policyManager.isActive()) {
 
-            optRepository.getAllSchedules().collect { schedules ->
+            launchTimeUpdate {
 
-                for (schedule in schedules) {
-                    launchTimeUpdate {
+                for (schedule in schedules.value) {
 
-                        if (isTimeToLock(it, schedule.offTime)
-                            && schedule.isEnabled
-                        ) {
-                            startForegroundService()
-                            delay(5000L)
-                            manager.lockScreen()
+                    if (isTimeToLock(it, schedule.offTime) && schedule.isEnabled) {
 
+                        startForegroundService()
+
+                        delay(5000L)
+
+                        val activitySetting = datastore.getActivitySetting().first()
+
+                        if (activitySetting.isMusicToStop) {
+                            musicManager.stopBackgroundMusic()
                         }
+
+                        policyManager.lockScreen()
+
                     }
                 }
             }
+
             return Result.success()
         }
         else {
             return Result.failure()
+        }
+    }
+
+    private fun getSchedules() {
+        CoroutineScope(Dispatchers.IO).launch {
+            optRepository.getAllSchedules().collect {
+                schedules.value = it
+            }
         }
     }
 

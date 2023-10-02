@@ -1,5 +1,6 @@
 package com.loki.opt.new_schedule
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -16,6 +17,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBackIos
 import androidx.compose.material.icons.filled.AccessTimeFilled
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -214,25 +216,6 @@ fun NewScheduleScreen(
                             )
                         }
                     }
-
-                    if (scheduleState.title.isNotBlank()) {
-
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        Box(
-                            modifier = Modifier.fillMaxWidth(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            TextButton(
-                                onClick = {
-                                    handleScheduleEvent(ScheduleEvent.OnDeleteSchedule)
-                                    navigateBack()
-                                }
-                            ) {
-                                Text(text = "Delete Schedule")
-                            }
-                        }
-                    }
                 }
             }
 
@@ -248,6 +231,29 @@ fun NewScheduleScreen(
                 horizontalArrangement = Arrangement.End
             ) {
 
+                if (scheduleState.title.isNotBlank()) {
+
+                    TextButton(
+                        onClick = {
+                            handleScheduleEvent(ScheduleEvent.OnDeleteSchedule)
+                            navigateBack()
+                        },
+                        colors = ButtonDefaults.textButtonColors(
+                            containerColor = MaterialTheme.colorScheme.error.copy(.5f),
+                            contentColor = MaterialTheme.colorScheme.error
+                        ),
+                        border = BorderStroke(
+                            width = 1.dp,
+                            color = MaterialTheme.colorScheme.error
+                        ),
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Text(text = "Delete Schedule")
+                    }
+                }
+
+                Spacer(modifier = Modifier.weight(1f))
+
                 TextButton(
                     onClick = {
                         handleScheduleEvent(
@@ -255,7 +261,17 @@ fun NewScheduleScreen(
                         )
                         navigateBack()
                     },
-                    enabled = scheduleState.title != ""
+                    enabled = scheduleState.title != "",
+                    colors = ButtonDefaults.textButtonColors(
+                        containerColor = MaterialTheme.colorScheme.primary.copy(.5f),
+                        contentColor = MaterialTheme.colorScheme.primary,
+                    ),
+                    border = BorderStroke(
+                        width = 1.dp,
+                        color = if (scheduleState.title != "") MaterialTheme.colorScheme.primary
+                        else Color.Gray,
+                    ),
+                    shape = RoundedCornerShape(8.dp)
                 ) {
                     Text(text = "Save")
                 }

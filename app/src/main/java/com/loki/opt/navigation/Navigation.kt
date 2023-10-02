@@ -11,6 +11,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.loki.opt.home.HomeScreen
 import com.loki.opt.new_schedule.NewScheduleScreen
+import com.loki.opt.settings.SettingsScreen
+import com.loki.opt.settings.SettingsViewModel
 import com.loki.opt.viewModel.OptViewModel
 
 @Composable
@@ -33,6 +35,9 @@ fun Navigation(
                 handleScheduleEvent = optViewModel::onScheduleEvent,
                 navigateToNewScreen = {
                     navController.navigate(Screen.NewScheduleScreen.route)
+                },
+                navigateToSettings = {
+                    navController.navigate(Screen.SettingsScreen.route)
                 }
             )
         }
@@ -42,13 +47,15 @@ fun Navigation(
             enterTransition = {
                 slideIntoContainer(
                     towards = AnimatedContentTransitionScope.SlideDirection.Up,
-                    animationSpec = tween(durationMillis = 400)
+                    animationSpec = tween(durationMillis = 100),
+                    initialOffset = { it/6 }
                 )
             },
             exitTransition = {
                 slideOutOfContainer(
                     towards = AnimatedContentTransitionScope.SlideDirection.Down,
-                    animationSpec = tween(durationMillis = 200)
+                    animationSpec = tween(durationMillis = 100),
+                    targetOffset = { it/6 }
                 )
             }
         ) {
@@ -61,10 +68,39 @@ fun Navigation(
                 }
             )
         }
+
+        composable(
+            route = Screen.SettingsScreen.route,
+            enterTransition = {
+                slideIntoContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.Left,
+                    animationSpec = tween(durationMillis = 300)
+                )
+            },
+            exitTransition = {
+                slideOutOfContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.Right,
+                    animationSpec = tween(durationMillis = 200)
+                )
+            }
+        ) {
+
+            val settingsViewModel = hiltViewModel<SettingsViewModel>()
+            val settingState by settingsViewModel.state.collectAsStateWithLifecycle()
+
+            SettingsScreen(
+                settingState = settingState,
+                onHandleSettingsEvent = settingsViewModel::onSettingsEvent,
+                navigateBack = {
+                    navController.navigateUp()
+                }
+            )
+        }
     }
 }
 
 sealed class Screen(val route: String) {
     object HomeScreen: Screen("home_screen")
     object NewScheduleScreen: Screen("new_schedule_screen")
+    object SettingsScreen: Screen("settings_screen")
 }

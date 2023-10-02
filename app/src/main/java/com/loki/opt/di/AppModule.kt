@@ -3,6 +3,7 @@ package com.loki.opt.di
 import android.app.Application
 import android.content.Context
 import androidx.room.Room
+import com.loki.opt.MusicManager
 import com.loki.opt.PolicyManager
 import com.loki.opt.data.database.OptDatabase
 import com.loki.opt.data.repository.OptRepository
@@ -45,5 +46,11 @@ object AppModule {
     @Provides
     fun providePolicyManager(@ApplicationContext context: Context): PolicyManager {
         return PolicyManager(context)
+    }
+
+    @Singleton
+    @Provides
+    fun provideMusicManager(@ApplicationContext context: Context): MusicManager {
+        return MusicManager(context)
     }
 }

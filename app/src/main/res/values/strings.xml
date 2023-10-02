@@ -1,4 +1,10 @@
 <resources>
     <string name="app_name">Opt</string>
     <string name="schedule">Schedule</string>
+    <string name="enable_disable_activities">Enable/Disable activities when phone locks</string>
+    <string name="stop_playing_music">Stop Playing Music</string>
+    <string name="music_will_stop">Music will stop when enabled.</string>
+    <string name="close_wifi_connection">Close Wifi Connection</string>
+    <string name="your_wifi_connection">Your wifi connection will close if it is enabled.</string>
+    <string name="settings">Settings</string>
 </resources>

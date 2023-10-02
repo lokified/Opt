@@ -16,13 +16,18 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -33,14 +38,34 @@ import com.loki.opt.data.database.Schedule
 import com.loki.opt.viewModel.ScheduleEvent
 import com.loki.opt.viewModel.ScheduleState
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     scheduleState: ScheduleState,
     handleScheduleEvent: (ScheduleEvent) -> Unit,
-    navigateToNewScreen: () -> Unit
+    navigateToNewScreen: () -> Unit,
+    navigateToSettings: () -> Unit
 ) {
 
     Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(text = "My Schedules", fontSize = 24.sp, fontWeight = FontWeight.Bold)
+                },
+                actions = {
+                    IconButton(onClick = navigateToSettings) {
+                        Icon(
+                            imageVector = Icons.Filled.Settings,
+                            contentDescription = "settings_icon"
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background
+                )
+            )
+        },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = {
@@ -77,11 +102,6 @@ fun HomeScreen(
             }
 
             LazyColumn(contentPadding = PaddingValues(16.dp)) {
-
-                item {
-                    Text(text = "My Schedules", fontSize = 24.sp, fontWeight = FontWeight.Bold)
-                }
-
                 items(scheduleState.schedules) { schedule ->
                     ScheduleItem(
                         schedule = schedule,
