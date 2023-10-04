@@ -1,33 +1,59 @@
 package com.loki.opt.viewModel
 
 import android.content.Context
+import android.util.Log
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequestBuilder
-import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
+import com.loki.opt.PolicyManager
 import com.loki.opt.data.database.Schedule
+import com.loki.opt.data.datastore.DataStoreStorage
 import com.loki.opt.data.repository.OptRepository
 import com.loki.opt.worker.LockScreenWorker
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 @HiltViewModel
 class OptViewModel @Inject constructor(
-    private val optRepository: OptRepository
+    private val optRepository: OptRepository,
+    private val dataStore: DataStoreStorage,
+    private val policyManager: PolicyManager
 ): ViewModel() {
 
     private val _state = MutableStateFlow(ScheduleState())
     val state = _state.asStateFlow()
 
+    var isLaunching = mutableStateOf(true)
+
     init {
         getAllSchedules()
+    }
+
+    fun getIsAdminEnabled() = policyManager.isActive()
+
+    fun onAppLaunch(openHomeScreen: () -> Unit) {
+        viewModelScope.launch {
+            dataStore.getIsFirstTimeLaunch().collect { isFirstLaunch ->
+
+                Log.i("first__launch", isFirstLaunch.toString())
+
+                if (!isFirstLaunch) {
+                    openHomeScreen()
+                }
+            }
+        }
+    }
+
+    fun setIsFirstTimeLaunch(isFirstTime: Boolean) {
+        viewModelScope.launch {
+            dataStore.isFirstTimeLaunch(isFirstTime)
+        }
     }
 
     fun onScheduleEvent(scheduleEvent: ScheduleEvent) {

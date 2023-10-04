@@ -1,6 +1,7 @@
 package com.loki.opt.viewModel
 
 import com.loki.opt.data.database.Schedule
+import com.loki.opt.util.TimeUtil
 
 data class ScheduleState(
     val id: Int = 0,

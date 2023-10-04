@@ -7,4 +7,24 @@
     <string name="close_wifi_connection">Close Wifi Connection</string>
     <string name="your_wifi_connection">Your wifi connection will close if it is enabled.</string>
     <string name="settings">Settings</string>
+    <string name="bedtime_companion">Bedtime Companion</string>
+    <string name="description_1">Meet your new bedtime buddy, Opt. We keep your phone use in check and ensure a good night\'s sleep.</string>
+    <string name="lock_your_screen">Automatic Screen Lock</string>
+    <string name="description_2">Your Screen will lock automatically on the scheduled time.</string>
+    <string name="schedule_time_locks">Schedule Time Locks</string>
+    <string name="description_3">Use Opt\'s scheduled time feature to prioritize your rest.</string>
+    <string name="admin_permission_request">Admin Permission Request</string>
+    <string name="give_permission_to_opt_app">Give permission to Opt App as an Admin for the lock screen schedules to work</string>
+    <string name="dismiss">Dismiss</string>
+    <string name="request">Request</string>
+    <string name="the_app_needs_admin">The app needs admin privileges to schedule lock screen</string>
+    <string name="nothing_has_been_scheduled">Nothing has been scheduled</string>
+    <string name="my_schedules">My Schedules</string>
+    <string name="opt_is_now_an_admin">Opt is now an Admin</string>
+    <string name="admin_permission_cancelled">Admin permission cancelled. Opt will not work!</string>
+    <string name="save">Save</string>
+    <string name="delete_schedule">Delete Schedule</string>
+    <string name="select_lock_time">Select Lock Time</string>
+    <string name="lock_name_title">Lock name title</string>
+    <string name="confirm">Confirm</string>
 </resources>

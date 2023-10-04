@@ -74,7 +74,7 @@ dependencies {
 
     // Compose dependencies
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.2")
-    implementation("androidx.navigation:navigation-compose:2.7.3")
+    implementation("androidx.navigation:navigation-compose:2.7.2")
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.6.2")
 
     //room
@@ -102,4 +102,7 @@ dependencies {
 
     //datastore
     implementation("androidx.datastore:datastore-preferences:1.0.0")
+    
+    //pager
+    implementation("com.google.accompanist:accompanist-pager:0.24.13-rc")
 }

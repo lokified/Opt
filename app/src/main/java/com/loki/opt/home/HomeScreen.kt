@@ -1,5 +1,13 @@
 package com.loki.opt.home
 
+import android.app.Activity
+import android.app.admin.DevicePolicyManager
+import android.content.ComponentName
+import android.content.Context
+import android.content.Intent
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -29,11 +37,21 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.loki.opt.MyDeviceAdminReceiver
+import com.loki.opt.R
+import com.loki.opt.components.AdminPermissionPanel
 import com.loki.opt.data.database.Schedule
 import com.loki.opt.viewModel.ScheduleEvent
 import com.loki.opt.viewModel.ScheduleState
@@ -41,17 +59,53 @@ import com.loki.opt.viewModel.ScheduleState
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
+    isAdminEnabled: Boolean,
     scheduleState: ScheduleState,
     handleScheduleEvent: (ScheduleEvent) -> Unit,
     navigateToNewScreen: () -> Unit,
     navigateToSettings: () -> Unit
 ) {
 
+    val context = LocalContext.current
+    var isAdminPanelVisible by remember { mutableStateOf(false) }
+
+    val deviceAdminLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+
+        if (result.resultCode == Activity.RESULT_OK) {
+            isAdminPanelVisible = false
+
+            Toast.makeText(
+                context,
+                context.getString(R.string.opt_is_now_an_admin),
+                Toast.LENGTH_LONG
+            ).show()
+        }
+        else {
+            Toast.makeText(
+                context,
+                context.getString(R.string.admin_permission_cancelled),
+                Toast.LENGTH_LONG
+            ).show()
+        }
+    }
+
+    LaunchedEffect(key1 = Unit) {
+        if (!isAdminEnabled) {
+            isAdminPanelVisible = true
+        }
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
-                    Text(text = "My Schedules", fontSize = 24.sp, fontWeight = FontWeight.Bold)
+                    Text(
+                        text = stringResource(R.string.my_schedules),
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold
+                    )
                 },
                 actions = {
                     IconButton(onClick = navigateToSettings) {
@@ -97,8 +151,17 @@ fun HomeScreen(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(text = "Nothing has been scheduled")
+                    Text(text = stringResource(R.string.nothing_has_been_scheduled))
                 }
+            }
+
+            if (isAdminPanelVisible) {
+                AdminPermissionPanel(
+                    onDismiss = {},
+                    onRequest = {
+                        deviceAdminLauncher.launch(requestPermission(context))
+                    }
+                )
             }
 
             LazyColumn(contentPadding = PaddingValues(16.dp)) {
@@ -164,4 +227,17 @@ fun ScheduleItem(
             Switch(checked = schedule.isEnabled, onCheckedChange = onEnable)
         }
     }
+}
+
+fun requestPermission(context: Context): Intent {
+    val intent = Intent(DevicePolicyManager.ACTION_ADD_DEVICE_ADMIN)
+    intent.putExtra(
+        DevicePolicyManager.EXTRA_DEVICE_ADMIN,
+        ComponentName(context, MyDeviceAdminReceiver::class.java)
+    )
+    intent.putExtra(
+        DevicePolicyManager.EXTRA_ADD_EXPLANATION,
+        context.getString(R.string.the_app_needs_admin)
+    )
+    return intent
 }

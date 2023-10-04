@@ -42,6 +42,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.loki.opt.R
@@ -121,7 +122,7 @@ fun NewScheduleScreen(
                         ) {
 
                             TextButton(onClick = { showDialog = false }) {
-                                Text(text = "Dismiss")
+                                Text(text = stringResource(id = R.string.dismiss))
                             }
 
                             TextButton(
@@ -136,7 +137,7 @@ fun NewScheduleScreen(
                                     )
                                 }
                             ) {
-                                Text(text = "Confirm")
+                                Text(text = stringResource(R.string.confirm))
                             }
                         }
                     }
@@ -168,10 +169,17 @@ fun NewScheduleScreen(
                         modifier = Modifier.fillMaxWidth(),
                         colors = TextFieldDefaults.colors(
                             focusedContainerColor = Color.Transparent,
-                            unfocusedContainerColor = Color.Transparent
+                            unfocusedContainerColor = Color.Transparent,
+                            focusedIndicatorColor = Color.Transparent,
+                            unfocusedIndicatorColor = Color.Transparent
                         ),
                         placeholder = {
-                            Text(text = "Name Title")
+                            Text(
+                                text = stringResource(R.string.lock_name_title),
+                                fontSize = 24.sp,
+                                fontStyle = FontStyle.Italic,
+                                color = MaterialTheme.colorScheme.onBackground.copy(.5f)
+                            )
                         }
                     )
 
@@ -201,7 +209,7 @@ fun NewScheduleScreen(
                                 )
                         ) {
                             Column {
-                                Text(text = "Lock Time", fontSize = 18.sp)
+                                Text(text = stringResource(R.string.select_lock_time), fontSize = 18.sp)
                                 Text(
                                     text = scheduleState.offTime,
                                     color = MaterialTheme.colorScheme.primary
@@ -248,7 +256,7 @@ fun NewScheduleScreen(
                         ),
                         shape = RoundedCornerShape(8.dp)
                     ) {
-                        Text(text = "Delete Schedule")
+                        Text(text = stringResource(R.string.delete_schedule))
                     }
                 }
 
@@ -261,19 +269,19 @@ fun NewScheduleScreen(
                         )
                         navigateBack()
                     },
-                    enabled = scheduleState.title != "",
+                    enabled = scheduleState.title.isNotBlank(),
                     colors = ButtonDefaults.textButtonColors(
                         containerColor = MaterialTheme.colorScheme.primary.copy(.5f),
                         contentColor = MaterialTheme.colorScheme.primary,
                     ),
                     border = BorderStroke(
                         width = 1.dp,
-                        color = if (scheduleState.title != "") MaterialTheme.colorScheme.primary
+                        color = if (scheduleState.title.isNotBlank()) MaterialTheme.colorScheme.primary
                         else Color.Gray,
                     ),
                     shape = RoundedCornerShape(8.dp)
                 ) {
-                    Text(text = "Save")
+                    Text(text = stringResource(R.string.save))
                 }
             }
         }
