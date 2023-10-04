@@ -12,8 +12,8 @@ import androidx.compose.ui.Modifier
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
-import com.loki.opt.navigation.Navigation
-import com.loki.opt.theme.OptTheme
+import com.loki.opt.ui.navigation.Navigation
+import com.loki.opt.ui.theme.OptTheme
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 

@@ -1,4 +1,4 @@
-package com.loki.opt.components
+package com.loki.opt.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement

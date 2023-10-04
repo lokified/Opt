@@ -1,4 +1,4 @@
-package com.loki.opt.onboarding
+package com.loki.opt.ui.onboarding
 
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDpAsState

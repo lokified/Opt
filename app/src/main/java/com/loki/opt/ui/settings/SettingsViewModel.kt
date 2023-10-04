@@ -1,4 +1,4 @@
-package com.loki.opt.settings
+package com.loki.opt.ui.settings
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

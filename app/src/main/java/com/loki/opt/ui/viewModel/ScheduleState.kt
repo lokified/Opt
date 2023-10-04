@@ -1,4 +1,4 @@
-package com.loki.opt.viewModel
+package com.loki.opt.ui.viewModel
 
 import com.loki.opt.data.database.Schedule
 import com.loki.opt.util.TimeUtil

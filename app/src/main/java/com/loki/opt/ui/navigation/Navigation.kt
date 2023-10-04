@@ -1,4 +1,4 @@
-package com.loki.opt.navigation
+package com.loki.opt.ui.navigation
 
 import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.core.tween
@@ -10,12 +10,12 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.loki.opt.OptAppState
-import com.loki.opt.home.HomeScreen
-import com.loki.opt.new_schedule.NewScheduleScreen
-import com.loki.opt.onboarding.OnBoardingScreen
-import com.loki.opt.settings.SettingsScreen
-import com.loki.opt.settings.SettingsViewModel
-import com.loki.opt.viewModel.OptViewModel
+import com.loki.opt.ui.home.HomeScreen
+import com.loki.opt.ui.new_schedule.NewScheduleScreen
+import com.loki.opt.ui.onboarding.OnBoardingScreen
+import com.loki.opt.ui.settings.SettingsScreen
+import com.loki.opt.ui.settings.SettingsViewModel
+import com.loki.opt.ui.viewModel.OptViewModel
 
 @Composable
 fun Navigation(

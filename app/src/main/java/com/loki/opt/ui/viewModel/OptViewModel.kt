@@ -1,4 +1,4 @@
-package com.loki.opt.viewModel
+package com.loki.opt.ui.viewModel
 
 import android.content.Context
 import android.util.Log

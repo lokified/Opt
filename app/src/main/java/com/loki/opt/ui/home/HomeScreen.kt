@@ -1,4 +1,4 @@
-package com.loki.opt.home
+package com.loki.opt.ui.home
 
 import android.app.Activity
 import android.app.admin.DevicePolicyManager
@@ -51,10 +51,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.loki.opt.MyDeviceAdminReceiver
 import com.loki.opt.R
-import com.loki.opt.components.AdminPermissionPanel
+import com.loki.opt.ui.components.AdminPermissionPanel
 import com.loki.opt.data.database.Schedule
-import com.loki.opt.viewModel.ScheduleEvent
-import com.loki.opt.viewModel.ScheduleState
+import com.loki.opt.ui.viewModel.ScheduleEvent
+import com.loki.opt.ui.viewModel.ScheduleState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

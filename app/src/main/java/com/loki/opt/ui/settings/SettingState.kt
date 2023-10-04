@@ -1,4 +1,4 @@
-package com.loki.opt.settings
+package com.loki.opt.ui.settings
 
 import com.loki.opt.data.datastore.ActivitySetting
 

@@ -1,4 +1,4 @@
-package com.loki.opt.theme
+package com.loki.opt.ui.theme
 
 import android.app.Activity
 import android.os.Build

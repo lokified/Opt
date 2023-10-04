@@ -1,4 +1,4 @@
-package com.loki.opt.onboarding
+package com.loki.opt.ui.onboarding
 
 import com.loki.opt.R
 

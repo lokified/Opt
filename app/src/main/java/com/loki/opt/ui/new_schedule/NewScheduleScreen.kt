@@ -1,4 +1,4 @@
-package com.loki.opt.new_schedule
+package com.loki.opt.ui.new_schedule
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -47,8 +47,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.loki.opt.R
 import com.loki.opt.util.ext.toTwoDigit
-import com.loki.opt.viewModel.ScheduleEvent
-import com.loki.opt.viewModel.ScheduleState
+import com.loki.opt.ui.viewModel.ScheduleEvent
+import com.loki.opt.ui.viewModel.ScheduleState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

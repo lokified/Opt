@@ -1,4 +1,4 @@
-package com.loki.opt.theme
+package com.loki.opt.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
