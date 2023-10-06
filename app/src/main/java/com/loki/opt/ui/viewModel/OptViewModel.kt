@@ -1,7 +1,6 @@
 package com.loki.opt.ui.viewModel
 
 import android.content.Context
-import android.util.Log
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -23,12 +22,14 @@ import javax.inject.Inject
 class OptViewModel @Inject constructor(
     private val optRepository: OptRepository,
     private val dataStore: DataStoreStorage,
-    private val policyManager: PolicyManager
+    private val policyManager: PolicyManager,
+    context: Context
 ): ViewModel() {
 
     private val _state = MutableStateFlow(ScheduleState())
     val state = _state.asStateFlow()
 
+    private val workManager = WorkManager.getInstance(context)
     var isLaunching = mutableStateOf(true)
 
     init {
@@ -40,9 +41,6 @@ class OptViewModel @Inject constructor(
     fun onAppLaunch(openHomeScreen: () -> Unit) {
         viewModelScope.launch {
             dataStore.getIsFirstTimeLaunch().collect { isFirstLaunch ->
-
-                Log.i("first__launch", isFirstLaunch.toString())
-
                 if (!isFirstLaunch) {
                     openHomeScreen()
                 }
@@ -58,7 +56,7 @@ class OptViewModel @Inject constructor(
 
     fun onScheduleEvent(scheduleEvent: ScheduleEvent) {
         when(scheduleEvent) {
-            is ScheduleEvent.OnSchedule -> saveSchedule(scheduleEvent.context)
+            is ScheduleEvent.OnSchedule -> saveSchedule()
             is ScheduleEvent.OnEditSchedule -> {
                 _state.value = _state.value.copy(
                     id = scheduleEvent.schedule.id,
@@ -85,7 +83,7 @@ class OptViewModel @Inject constructor(
         }
     }
 
-    private fun saveSchedule(context: Context) {
+    private fun saveSchedule() {
         viewModelScope.launch {
             optRepository.saveSchedule(
                 Schedule(
@@ -98,9 +96,8 @@ class OptViewModel @Inject constructor(
         }
 
         val lockScreenRequest = OneTimeWorkRequestBuilder<LockScreenWorker>().build()
-        val workManager = WorkManager.getInstance(context)
         workManager.beginUniqueWork(
-            "lock screen ${_state.value.offTime}",
+            "lock screen ${_state.value.title}",
             ExistingWorkPolicy.APPEND_OR_REPLACE,
             lockScreenRequest
         ).enqueue()
@@ -117,6 +114,8 @@ class OptViewModel @Inject constructor(
                 )
             )
         }
+
+        workManager.cancelUniqueWork("lock screen ${_state.value.title}")
     }
 
     private fun enableSchedule(isEnabled: Boolean, scheduleId: Int) {
@@ -147,7 +146,7 @@ class OptViewModel @Inject constructor(
 
 sealed class ScheduleEvent {
 
-    data class OnSchedule(val context: Context): ScheduleEvent()
+    object OnSchedule: ScheduleEvent()
     data class OnEditSchedule(val schedule: Schedule): ScheduleEvent()
     data class OnEnableSchedule(val isEnabled: Boolean, val scheduleId: Int): ScheduleEvent()
     object OnDeleteSchedule: ScheduleEvent()

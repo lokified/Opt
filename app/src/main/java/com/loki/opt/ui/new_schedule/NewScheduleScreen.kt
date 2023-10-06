@@ -40,7 +40,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.dp
@@ -49,6 +48,7 @@ import com.loki.opt.R
 import com.loki.opt.util.ext.toTwoDigit
 import com.loki.opt.ui.viewModel.ScheduleEvent
 import com.loki.opt.ui.viewModel.ScheduleState
+import com.loki.opt.util.TimeUtil
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -57,10 +57,11 @@ fun NewScheduleScreen(
     handleScheduleEvent: (ScheduleEvent) -> Unit,
     navigateBack: () -> Unit
 ) {
-    val context = LocalContext.current
 
-    var selectedHour by remember { mutableIntStateOf(0) }
-    var selectedMinute by remember { mutableIntStateOf(0) }
+    val suggestedTime = TimeUtil.getSuggestedTime()
+
+    var selectedHour by remember { mutableIntStateOf(suggestedTime.first) }
+    var selectedMinute by remember { mutableIntStateOf(suggestedTime.second) }
     var showDialog by remember { mutableStateOf(false) }
     val timePickerState = rememberTimePickerState(
         initialHour = selectedHour,
@@ -211,7 +212,8 @@ fun NewScheduleScreen(
                             Column {
                                 Text(text = stringResource(R.string.select_lock_time), fontSize = 18.sp)
                                 Text(
-                                    text = scheduleState.offTime,
+                                    text = if (scheduleState.offTime.isNotBlank()) scheduleState.offTime
+                                    else "${suggestedTime.first.toTwoDigit()}:${suggestedTime.second.toTwoDigit()}",
                                     color = MaterialTheme.colorScheme.primary
                                 )
                             }
@@ -265,8 +267,11 @@ fun NewScheduleScreen(
                 TextButton(
                     onClick = {
                         handleScheduleEvent(
-                            ScheduleEvent.OnSchedule(context)
+                            ScheduleEvent.OffTimeChangeEvent(
+                            "${selectedHour.toTwoDigit()}:${selectedMinute.toTwoDigit()}"
+                            )
                         )
+                        handleScheduleEvent(ScheduleEvent.OnSchedule)
                         navigateBack()
                     },
                     enabled = scheduleState.title.isNotBlank(),

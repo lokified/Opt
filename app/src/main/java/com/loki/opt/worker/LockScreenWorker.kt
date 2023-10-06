@@ -3,6 +3,7 @@ package com.loki.opt.worker
 import android.content.Context
 import androidx.compose.runtime.mutableStateOf
 import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
 import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.ForegroundInfo
@@ -60,11 +61,10 @@ class LockScreenWorker @AssistedInject constructor(
                         }
 
                         policyManager.lockScreen()
-
                     }
                 }
             }
-
+            cancelNotification()
             return Result.success()
         }
         else {
@@ -103,18 +103,22 @@ class LockScreenWorker @AssistedInject constructor(
     }
 
     private suspend fun startForegroundService() {
-        setForeground(notification())
+        setForeground(
+            ForegroundInfo(
+                NOTIFICATION_ID,
+                NotificationCompat.Builder(context, "lockscreen_channel")
+                    .setSmallIcon(R.mipmap.ic_opt_launcher)
+                    .setContentText("Lock Screen Activated")
+                    .setAutoCancel(true)
+                    .build()
+            )
+        )
     }
 
-    private fun notification() =
-        ForegroundInfo(
-            NOTIFICATION_ID,
-            NotificationCompat.Builder(context, "lockscreen_channel")
-                .setSmallIcon(R.drawable.ic_launcher_foreground)
-                .setContentText("Lock Screen Activated")
-                .setAutoCancel(true)
-                .build()
-        )
+    private fun cancelNotification() {
+        val notificationManager = NotificationManagerCompat.from(context)
+        notificationManager.cancel(NOTIFICATION_ID)
+    }
 
     companion object {
         const val NOTIFICATION_ID = 1

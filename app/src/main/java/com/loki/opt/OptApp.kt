@@ -37,7 +37,7 @@ class OptApp: Application(), Configuration.Provider {
             val channel = NotificationChannel(
                 "lockscreen_channel",
                 "LockScreen",
-                NotificationManager.IMPORTANCE_HIGH
+                NotificationManager.IMPORTANCE_DEFAULT
             )
 
              val notificationManager = getSystemService(NotificationManager::class.java)
