@@ -3,7 +3,6 @@ package com.loki.opt.worker
 import android.content.Context
 import androidx.compose.runtime.mutableStateOf
 import androidx.core.app.NotificationCompat
-import androidx.core.app.NotificationManagerCompat
 import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.ForegroundInfo
@@ -23,6 +22,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.util.Calendar
+import java.util.Random
 
 @HiltWorker
 class LockScreenWorker @AssistedInject constructor(
@@ -32,7 +32,7 @@ class LockScreenWorker @AssistedInject constructor(
     private val musicManager: MusicManager,
     @Assisted val context: Context,
     @Assisted params: WorkerParameters
-): CoroutineWorker(context, params) {
+) : CoroutineWorker(context, params) {
 
     private val schedules = mutableStateOf<List<Schedule>>(emptyList())
 
@@ -50,8 +50,6 @@ class LockScreenWorker @AssistedInject constructor(
 
                     if (isTimeToLock(it, schedule.offTime) && schedule.isEnabled) {
 
-                        startForegroundService()
-
                         delay(5000L)
 
                         val activitySetting = datastore.getActivitySetting().first()
@@ -64,10 +62,8 @@ class LockScreenWorker @AssistedInject constructor(
                     }
                 }
             }
-            cancelNotification()
             return Result.success()
-        }
-        else {
+        } else {
             return Result.failure()
         }
     }
@@ -84,7 +80,7 @@ class LockScreenWorker @AssistedInject constructor(
         while (true) {
             val currentTime = Calendar.getInstance()
             time(currentTime)
-            delay(10 * 2000L)
+            delay(10 * 4000L)
         }
     }
 
@@ -102,25 +98,15 @@ class LockScreenWorker @AssistedInject constructor(
         return time == currTime
     }
 
-    private suspend fun startForegroundService() {
-        setForeground(
-            ForegroundInfo(
-                NOTIFICATION_ID,
-                NotificationCompat.Builder(context, "lockscreen_channel")
-                    .setSmallIcon(R.mipmap.ic_opt_launcher)
-                    .setContentText("Lock Screen Activated")
-                    .setAutoCancel(true)
-                    .build()
-            )
+    override suspend fun getForegroundInfo(): ForegroundInfo {
+        return ForegroundInfo(
+            Random().nextInt(),
+            NotificationCompat.Builder(context, "lockscreen_channel")
+                .setSmallIcon(R.mipmap.ic_opt_launcher)
+                .setContentTitle("Opt Lock Screen")
+                .setContentText("Lock Screen Activated")
+                .setAutoCancel(true)
+                .build()
         )
-    }
-
-    private fun cancelNotification() {
-        val notificationManager = NotificationManagerCompat.from(context)
-        notificationManager.cancel(NOTIFICATION_ID)
-    }
-
-    companion object {
-        const val NOTIFICATION_ID = 1
     }
 }

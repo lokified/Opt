@@ -22,22 +22,29 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.loki.opt.R
+import com.ramcosta.composedestinations.annotation.Destination
+import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 
+@Destination
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
-    settingState: SettingState,
-    onHandleSettingsEvent: (SettingsEvent) -> Unit,
-    navigateBack: () -> Unit
+    navigator: DestinationsNavigator
 ) {
-    
+
+    val settingsViewModel = hiltViewModel<SettingsViewModel>()
+    val settingState by settingsViewModel.state.collectAsStateWithLifecycle()
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -49,7 +56,7 @@ fun SettingsScreen(
                     )
                 },
                 navigationIcon = {
-                    IconButton(onClick = navigateBack) {
+                    IconButton(onClick = navigator::navigateUp) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBackIos,
                             contentDescription = "icon_back"
@@ -61,8 +68,8 @@ fun SettingsScreen(
                 )
             )
         },
-        
-    ) { padding ->
+
+        ) { padding ->
 
         Column(
             modifier = Modifier
@@ -87,7 +94,7 @@ fun SettingsScreen(
                 description = stringResource(R.string.music_will_stop),
                 isChecked = settingState.musicToStop,
                 onChecked = {
-                    onHandleSettingsEvent(
+                    settingsViewModel.onSettingsEvent(
                         SettingsEvent.OnMusicPlayingChange(it)
                     )
                 }

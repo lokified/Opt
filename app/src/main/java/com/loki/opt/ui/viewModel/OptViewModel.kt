@@ -1,20 +1,18 @@
 package com.loki.opt.ui.viewModel
 
-import android.content.Context
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.work.ExistingWorkPolicy
-import androidx.work.OneTimeWorkRequestBuilder
-import androidx.work.WorkManager
 import com.loki.opt.PolicyManager
 import com.loki.opt.data.database.Schedule
 import com.loki.opt.data.datastore.DataStoreStorage
 import com.loki.opt.data.repository.OptRepository
-import com.loki.opt.worker.LockScreenWorker
+import com.loki.opt.worker.WorkInitializer
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -23,13 +21,12 @@ class OptViewModel @Inject constructor(
     private val optRepository: OptRepository,
     private val dataStore: DataStoreStorage,
     private val policyManager: PolicyManager,
-    context: Context
-): ViewModel() {
+    private val workInitializer: WorkInitializer
+) : ViewModel() {
 
     private val _state = MutableStateFlow(ScheduleState())
     val state = _state.asStateFlow()
 
-    private val workManager = WorkManager.getInstance(context)
     var isLaunching = mutableStateOf(true)
 
     init {
@@ -38,15 +35,11 @@ class OptViewModel @Inject constructor(
 
     fun getIsAdminEnabled() = policyManager.isActive()
 
-    fun onAppLaunch(openHomeScreen: () -> Unit) {
-        viewModelScope.launch {
-            dataStore.getIsFirstTimeLaunch().collect { isFirstLaunch ->
-                if (!isFirstLaunch) {
-                    openHomeScreen()
-                }
-            }
-        }
-    }
+    val isFirstTimeLaunch = dataStore.getIsFirstTimeLaunch().stateIn(
+        viewModelScope,
+        SharingStarted.WhileSubscribed(5000L),
+        false
+    )
 
     fun setIsFirstTimeLaunch(isFirstTime: Boolean) {
         viewModelScope.launch {
@@ -55,7 +48,7 @@ class OptViewModel @Inject constructor(
     }
 
     fun onScheduleEvent(scheduleEvent: ScheduleEvent) {
-        when(scheduleEvent) {
+        when (scheduleEvent) {
             is ScheduleEvent.OnSchedule -> saveSchedule()
             is ScheduleEvent.OnEditSchedule -> {
                 _state.value = _state.value.copy(
@@ -65,7 +58,12 @@ class OptViewModel @Inject constructor(
                     isEnabled = scheduleEvent.schedule.isEnabled
                 )
             }
-            is ScheduleEvent.OnEnableSchedule -> enableSchedule(scheduleEvent.isEnabled, scheduleEvent.scheduleId)
+
+            is ScheduleEvent.OnEnableSchedule -> enableSchedule(
+                scheduleEvent.isEnabled,
+                scheduleEvent.scheduleId
+            )
+
             is ScheduleEvent.OnDeleteSchedule -> deleteSchedule()
             is ScheduleEvent.TitleChangeEvent -> onTitleChange(scheduleEvent.title)
             is ScheduleEvent.OffTimeChangeEvent -> onOffTimeChange(scheduleEvent.offTime)
@@ -95,12 +93,7 @@ class OptViewModel @Inject constructor(
             )
         }
 
-        val lockScreenRequest = OneTimeWorkRequestBuilder<LockScreenWorker>().build()
-        workManager.beginUniqueWork(
-            "lock screen ${_state.value.title}",
-            ExistingWorkPolicy.APPEND_OR_REPLACE,
-            lockScreenRequest
-        ).enqueue()
+        workInitializer.initialize(workName = "lock screen ${_state.value.title}")
     }
 
     private fun deleteSchedule() {
@@ -115,7 +108,7 @@ class OptViewModel @Inject constructor(
             )
         }
 
-        workManager.cancelUniqueWork("lock screen ${_state.value.title}")
+        workInitializer.workManager.cancelUniqueWork("lock screen ${_state.value.title}")
     }
 
     private fun enableSchedule(isEnabled: Boolean, scheduleId: Int) {
@@ -146,11 +139,11 @@ class OptViewModel @Inject constructor(
 
 sealed class ScheduleEvent {
 
-    object OnSchedule: ScheduleEvent()
-    data class OnEditSchedule(val schedule: Schedule): ScheduleEvent()
-    data class OnEnableSchedule(val isEnabled: Boolean, val scheduleId: Int): ScheduleEvent()
-    object OnDeleteSchedule: ScheduleEvent()
-    data class TitleChangeEvent(val title: String): ScheduleEvent()
-    data class OffTimeChangeEvent(val offTime: String): ScheduleEvent()
-    data class EnabledChangeEvent(val isEnabled: Boolean): ScheduleEvent()
+    data object OnSchedule : ScheduleEvent()
+    data class OnEditSchedule(val schedule: Schedule) : ScheduleEvent()
+    data class OnEnableSchedule(val isEnabled: Boolean, val scheduleId: Int) : ScheduleEvent()
+    data object OnDeleteSchedule : ScheduleEvent()
+    data class TitleChangeEvent(val title: String) : ScheduleEvent()
+    data class OffTimeChangeEvent(val offTime: String) : ScheduleEvent()
+    data class EnabledChangeEvent(val isEnabled: Boolean) : ScheduleEvent()
 }

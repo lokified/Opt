@@ -44,12 +44,22 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.loki.opt.ui.destinations.HomeScreenDestination
+import com.loki.opt.ui.destinations.OnBoardingScreenDestination
+import com.loki.opt.ui.viewModel.OptViewModel
+import com.ramcosta.composedestinations.annotation.Destination
+import com.ramcosta.composedestinations.annotation.RootNavGraph
+import com.ramcosta.composedestinations.navigation.DestinationsNavigator
+import com.ramcosta.composedestinations.navigation.popUpTo
 import kotlinx.coroutines.launch
 
+@Destination(start = true)
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun OnBoardingScreen(
-    navigateToHome: () -> Unit
+    navigator: DestinationsNavigator,
+    optViewModel: OptViewModel = hiltViewModel()
 ) {
 
     val items = OnBoardingItems.getData()
@@ -76,7 +86,17 @@ fun OnBoardingScreen(
                     pageState.scrollToPage(items.size - 1)
                 }
 
-                navigateToHome()
+                navigator.navigate(
+                    direction = HomeScreenDestination,
+                    builder = {
+                        launchSingleTop = true
+                        popUpTo(OnBoardingScreenDestination) {
+                            inclusive = true
+                        }
+                    }
+                )
+
+                optViewModel.setIsFirstTimeLaunch(false)
             }
         )
 
@@ -95,7 +115,16 @@ fun OnBoardingScreen(
             }
 
             if (pageState.currentPage == 2) {
-                navigateToHome()
+                navigator.navigate(
+                    direction = HomeScreenDestination,
+                    builder = {
+                        launchSingleTop = true
+                        popUpTo(OnBoardingScreenDestination) {
+                            inclusive = true
+                        }
+                    }
+                )
+                optViewModel.setIsFirstTimeLaunch(false)
             }
         }
     }
@@ -139,7 +168,8 @@ fun OnBoardingItem(items: OnBoardingItems) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier
+            .fillMaxSize()
             .padding(16.dp)
     ) {
         Image(
@@ -192,7 +222,8 @@ fun BottomSection(size: Int, index: Int, onButtonClick: () -> Unit = {}) {
             Icon(
                 Icons.AutoMirrored.Outlined.KeyboardArrowRight,
                 tint = MaterialTheme.colorScheme.background,
-                contentDescription = "Localized description")
+                contentDescription = "Localized description"
+            )
         }
     }
 }

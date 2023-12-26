@@ -51,20 +51,26 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.loki.opt.MyDeviceAdminReceiver
 import com.loki.opt.R
-import com.loki.opt.ui.components.AdminPermissionPanel
 import com.loki.opt.data.database.Schedule
+import com.loki.opt.ui.components.AdminPermissionPanel
+import com.loki.opt.ui.destinations.NewScheduleScreenDestination
+import com.loki.opt.ui.destinations.SettingsScreenDestination
+import com.loki.opt.ui.viewModel.OptViewModel
 import com.loki.opt.ui.viewModel.ScheduleEvent
 import com.loki.opt.ui.viewModel.ScheduleState
+import com.ramcosta.composedestinations.annotation.Destination
+import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 
+@Destination
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
-    isAdminEnabled: Boolean,
-    scheduleState: ScheduleState,
-    handleScheduleEvent: (ScheduleEvent) -> Unit,
-    navigateToNewScreen: () -> Unit,
-    navigateToSettings: () -> Unit
+    navigator: DestinationsNavigator,
+    optViewModel: OptViewModel,
+    scheduleState: ScheduleState
 ) {
+
+    val isAdminEnabled = optViewModel.getIsAdminEnabled()
 
     val context = LocalContext.current
     var isAdminPanelVisible by remember { mutableStateOf(false) }
@@ -81,8 +87,7 @@ fun HomeScreen(
                 context.getString(R.string.opt_is_now_an_admin),
                 Toast.LENGTH_LONG
             ).show()
-        }
-        else {
+        } else {
             Toast.makeText(
                 context,
                 context.getString(R.string.admin_permission_cancelled),
@@ -108,7 +113,9 @@ fun HomeScreen(
                     )
                 },
                 actions = {
-                    IconButton(onClick = navigateToSettings) {
+                    IconButton(onClick = {
+                        navigator.navigate(SettingsScreenDestination)
+                    }) {
                         Icon(
                             imageVector = Icons.Filled.Settings,
                             contentDescription = "settings_icon"
@@ -123,12 +130,16 @@ fun HomeScreen(
         floatingActionButton = {
             FloatingActionButton(
                 onClick = {
-                    handleScheduleEvent(
+                    optViewModel.onScheduleEvent(
                         ScheduleEvent.OnEditSchedule(
-                            Schedule(0,"", "", false)
+                            Schedule(0, "", "", false)
                         )
                     )
-                    navigateToNewScreen()
+                    navigator.navigate(
+                        NewScheduleScreenDestination(
+                            isEditScreen = false
+                        )
+                    )
                 }
             ) {
                 Icon(imageVector = Icons.Filled.Add, contentDescription = "Add_Icon")
@@ -169,7 +180,7 @@ fun HomeScreen(
                     ScheduleItem(
                         schedule = schedule,
                         onEnable = {
-                            handleScheduleEvent(
+                            optViewModel.onScheduleEvent(
                                 ScheduleEvent.OnEnableSchedule(
                                     isEnabled = it,
                                     scheduleId = schedule.id
@@ -177,9 +188,13 @@ fun HomeScreen(
                             )
                         },
                         onClickItem = {
-                            navigateToNewScreen()
-                            handleScheduleEvent(
+                            optViewModel.onScheduleEvent(
                                 ScheduleEvent.OnEditSchedule(schedule)
+                            )
+                            navigator.navigate(
+                                NewScheduleScreenDestination(
+                                    isEditScreen = true
+                                )
                             )
                         }
                     )

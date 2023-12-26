@@ -16,7 +16,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBackIos
 import androidx.compose.material.icons.filled.AccessTimeFilled
-import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -45,17 +45,24 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.loki.opt.R
-import com.loki.opt.util.ext.toTwoDigit
+import com.loki.opt.ui.viewModel.OptViewModel
 import com.loki.opt.ui.viewModel.ScheduleEvent
 import com.loki.opt.ui.viewModel.ScheduleState
 import com.loki.opt.util.TimeUtil
+import com.loki.opt.util.ext.toTwoDigit
+import com.ramcosta.composedestinations.annotation.Destination
+import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 
+@Destination(
+    navArgsDelegate = NewScheduleNavArgs::class
+)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NewScheduleScreen(
+    navigator: DestinationsNavigator,
+    optViewModel: OptViewModel,
     scheduleState: ScheduleState,
-    handleScheduleEvent: (ScheduleEvent) -> Unit,
-    navigateBack: () -> Unit
+    navArgs: NewScheduleNavArgs
 ) {
 
     val suggestedTime = TimeUtil.getSuggestedTime()
@@ -76,7 +83,7 @@ fun NewScheduleScreen(
                     Text(text = stringResource(R.string.schedule))
                 },
                 navigationIcon = {
-                    IconButton(onClick = navigateBack) {
+                    IconButton(onClick = navigator::navigateUp) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBackIos,
                             contentDescription = "icon_back"
@@ -98,7 +105,7 @@ fun NewScheduleScreen(
         ) {
 
             if (showDialog) {
-                AlertDialog(
+                BasicAlertDialog(
                     onDismissRequest = {
                         showDialog = false
                     }
@@ -131,7 +138,7 @@ fun NewScheduleScreen(
                                     showDialog = false
                                     selectedHour = timePickerState.hour
                                     selectedMinute = timePickerState.minute
-                                    handleScheduleEvent(
+                                    optViewModel.onScheduleEvent(
                                         ScheduleEvent.OffTimeChangeEvent(
                                             "${selectedHour.toTwoDigit()}:${selectedMinute.toTwoDigit()}"
                                         )
@@ -163,7 +170,7 @@ fun NewScheduleScreen(
                     TextField(
                         value = scheduleState.title,
                         onValueChange = {
-                            handleScheduleEvent(
+                            optViewModel.onScheduleEvent(
                                 ScheduleEvent.TitleChangeEvent(it)
                             )
                         },
@@ -210,7 +217,10 @@ fun NewScheduleScreen(
                                 )
                         ) {
                             Column {
-                                Text(text = stringResource(R.string.select_lock_time), fontSize = 18.sp)
+                                Text(
+                                    text = stringResource(R.string.select_lock_time),
+                                    fontSize = 18.sp
+                                )
                                 Text(
                                     text = if (scheduleState.offTime.isNotBlank()) scheduleState.offTime
                                     else "${suggestedTime.first.toTwoDigit()}:${suggestedTime.second.toTwoDigit()}",
@@ -241,12 +251,12 @@ fun NewScheduleScreen(
                 horizontalArrangement = Arrangement.End
             ) {
 
-                if (scheduleState.title.isNotBlank()) {
+                if (navArgs.isEditScreen) {
 
                     TextButton(
                         onClick = {
-                            handleScheduleEvent(ScheduleEvent.OnDeleteSchedule)
-                            navigateBack()
+                            optViewModel.onScheduleEvent(ScheduleEvent.OnDeleteSchedule)
+                            navigator.navigateUp()
                         },
                         colors = ButtonDefaults.textButtonColors(
                             containerColor = MaterialTheme.colorScheme.error.copy(.5f),
@@ -266,13 +276,13 @@ fun NewScheduleScreen(
 
                 TextButton(
                     onClick = {
-                        handleScheduleEvent(
+                        optViewModel.onScheduleEvent(
                             ScheduleEvent.OffTimeChangeEvent(
-                            "${selectedHour.toTwoDigit()}:${selectedMinute.toTwoDigit()}"
+                                "${selectedHour.toTwoDigit()}:${selectedMinute.toTwoDigit()}"
                             )
                         )
-                        handleScheduleEvent(ScheduleEvent.OnSchedule)
-                        navigateBack()
+                        optViewModel.onScheduleEvent(ScheduleEvent.OnSchedule)
+                        navigator.navigateUp()
                     },
                     enabled = scheduleState.title.isNotBlank(),
                     colors = ButtonDefaults.textButtonColors(
