@@ -9,9 +9,8 @@ class PolicyManager @Inject constructor(
     context: Context
 ) {
 
-    private val devicePolicyManager: DevicePolicyManager by lazy {
-        context.getSystemService(Context.DEVICE_POLICY_SERVICE) as DevicePolicyManager
-    }
+    private val devicePolicyManager: DevicePolicyManager = context.getSystemService(Context.DEVICE_POLICY_SERVICE) as DevicePolicyManager
+
     val componentName = ComponentName(context, MyDeviceAdminReceiver::class.java)
 
     fun isActive(): Boolean {
