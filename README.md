@@ -1,4 +1,4 @@
-# Reet
+# Opt
 This is an android app that locks your screen on a scheduled time.
 
 [Download App in the latest release here](https://github.com/lokified/Opt/releases)
@@ -29,7 +29,7 @@ The app uses these technologies;
   - worker - for managing schedules
 - Coroutines - Used to make asynchronous calls.
 - Splash screen Api - For creating a splash screen on app starting.
-- compose destinations - A Ksp lbarary for navigation
+- compose destinations - A Ksp library for navigation
 
 ## Known Bugs
 
