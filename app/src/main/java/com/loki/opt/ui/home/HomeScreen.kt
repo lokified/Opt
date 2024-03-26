@@ -8,6 +8,13 @@ import android.content.Intent
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.animateColor
+import androidx.compose.animation.core.EaseOutCubic
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateDp
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.updateTransition
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -16,6 +23,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -24,18 +32,12 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -44,25 +46,33 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.loki.opt.MyDeviceAdminReceiver
 import com.loki.opt.R
 import com.loki.opt.data.database.Schedule
 import com.loki.opt.ui.components.AdminPermissionPanel
-import com.loki.opt.ui.destinations.NewScheduleScreenDestination
+import com.loki.opt.ui.components.HomeTopBar
+import com.loki.opt.ui.components.NewScheduleTopBar
 import com.loki.opt.ui.destinations.SettingsScreenDestination
+import com.loki.opt.ui.new_schedule.NewScheduleScreen
 import com.loki.opt.ui.viewModel.OptViewModel
 import com.loki.opt.ui.viewModel.ScheduleEvent
 import com.loki.opt.ui.viewModel.ScheduleState
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 
+enum class ContainerState {
+    Fab,
+    Fullscreen,
+}
+
 @Destination
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     navigator: DestinationsNavigator,
@@ -73,7 +83,9 @@ fun HomeScreen(
     val isAdminEnabled = optViewModel.getIsAdminEnabled()
 
     val context = LocalContext.current
+    var isEditScreen by remember { mutableStateOf(false) }
     var isAdminPanelVisible by remember { mutableStateOf(false) }
+    var containerState by remember { mutableStateOf(ContainerState.Fab) }
 
     val deviceAdminLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
@@ -104,45 +116,15 @@ fun HomeScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = stringResource(R.string.my_schedules),
-                        fontSize = 24.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                },
-                actions = {
-                    IconButton(onClick = {
-                        navigator.navigate(SettingsScreenDestination)
-                    }) {
-                        Icon(
-                            imageVector = Icons.Filled.Settings,
-                            contentDescription = "settings_icon"
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background
-                )
-            )
-        },
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = {
-                    optViewModel.onScheduleEvent(
-                        ScheduleEvent.OnEditSchedule(
-                            Schedule(0, "", "", false)
-                        )
-                    )
-                    navigator.navigate(
-                        NewScheduleScreenDestination(
-                            isEditScreen = false
-                        )
-                    )
+            if (containerState == ContainerState.Fab) {
+                HomeTopBar {
+                    navigator.navigate(SettingsScreenDestination)
                 }
-            ) {
-                Icon(imageVector = Icons.Filled.Add, contentDescription = "Add_Icon")
+            } else {
+                NewScheduleTopBar {
+                    containerState = ContainerState.Fab
+                    isEditScreen = false
+                }
             }
         }
     ) { padding ->
@@ -191,11 +173,8 @@ fun HomeScreen(
                             optViewModel.onScheduleEvent(
                                 ScheduleEvent.OnEditSchedule(schedule)
                             )
-                            navigator.navigate(
-                                NewScheduleScreenDestination(
-                                    isEditScreen = true
-                                )
-                            )
+                            containerState = ContainerState.Fullscreen
+                            isEditScreen = true
                         }
                     )
 
@@ -204,9 +183,172 @@ fun HomeScreen(
                     )
                 }
             }
+
+            FabContainer(
+                modifier = Modifier
+                    .align(Alignment.BottomEnd),
+                optViewModel = optViewModel,
+                scheduleState = scheduleState,
+                isEditScreen = isEditScreen,
+                containerState = containerState
+            ) { state ->
+                containerState = state
+                if (state == ContainerState.Fab && isEditScreen) {
+                    isEditScreen = false
+                }
+            }
         }
     }
 }
+
+@Composable
+fun FabContainer(
+    modifier: Modifier = Modifier,
+    optViewModel: OptViewModel,
+    scheduleState: ScheduleState,
+    isEditScreen: Boolean,
+    containerState: ContainerState,
+    selectedContainer: (ContainerState) -> Unit
+) {
+
+    if (isEditScreen) {
+        NewScheduleScreen(
+            optViewModel = optViewModel,
+            scheduleState = scheduleState,
+            isEditScreen = isEditScreen,
+            navigateBack = {
+                selectedContainer(ContainerState.Fab)
+            }
+        )
+    } else {
+
+        val transition = updateTransition(targetState = containerState, label = "transition")
+
+        val cornerRadius by transition.animateDp(
+            label = "corner radius",
+            transitionSpec = {
+                when (targetState) {
+                    ContainerState.Fab -> tween(
+                        durationMillis = 400,
+                        easing = EaseOutCubic
+                    )
+
+                    ContainerState.Fullscreen -> tween(
+                        durationMillis = 200,
+                        easing = FastOutSlowInEasing
+                    )
+                }
+            }
+        ) { state ->
+            when (state) {
+                ContainerState.Fullscreen -> 0.dp
+                ContainerState.Fab -> 22.dp
+            }
+        }
+
+        val backgroundColor by transition.animateColor(label = "background color") { state ->
+            when (state) {
+                ContainerState.Fab -> MaterialTheme.colorScheme.primary
+                ContainerState.Fullscreen -> MaterialTheme.colorScheme.background
+            }
+        }
+
+        val elevation by transition.animateDp(
+            label = "elevation",
+            transitionSpec = {
+                when (targetState) {
+                    ContainerState.Fab -> tween(
+                        durationMillis = 400,
+                        easing = EaseOutCubic
+                    )
+
+                    ContainerState.Fullscreen -> tween(
+                        durationMillis = 200,
+                        easing = EaseOutCubic
+                    )
+                }
+            }
+        ) { state ->
+            when (state) {
+                ContainerState.Fab -> 6.dp
+                ContainerState.Fullscreen -> 0.dp
+            }
+        }
+
+        val padding by transition.animateDp(label = "padding") { state ->
+            when (state) {
+                ContainerState.Fab -> 16.dp
+                ContainerState.Fullscreen -> 0.dp
+            }
+        }
+
+        transition.AnimatedContent(
+            modifier = modifier
+                .padding(end = padding, bottom = padding)
+                .shadow(
+                    elevation = elevation,
+                    shape = RoundedCornerShape(cornerRadius)
+                )
+                .drawBehind {
+                    drawRect(color = backgroundColor)
+                }
+        ) { state ->
+
+            when (state) {
+                ContainerState.Fab -> {
+                    Fab(
+                        onClick = {
+                            selectedContainer(ContainerState.Fullscreen)
+
+                            optViewModel.onScheduleEvent(
+                                ScheduleEvent.OnEditSchedule(
+                                    Schedule(0, "", "", false)
+                                )
+                            )
+                        }
+                    )
+                }
+
+                ContainerState.Fullscreen -> {
+
+                    NewScheduleScreen(
+                        optViewModel = optViewModel,
+                        scheduleState = scheduleState,
+                        isEditScreen = isEditScreen,
+                        navigateBack = {
+                            selectedContainer(ContainerState.Fab)
+                        }
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun Fab(
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
+    Box(
+        modifier = modifier
+            .defaultMinSize(
+                minWidth = 65.dp,
+                minHeight = 65.dp,
+            )
+            .clickable(
+                onClick = onClick,
+            ),
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(
+            imageVector = Icons.Filled.Add,
+            contentDescription = null,
+            tint = Color.White
+        )
+    }
+}
+
 
 @Composable
 fun ScheduleItem(

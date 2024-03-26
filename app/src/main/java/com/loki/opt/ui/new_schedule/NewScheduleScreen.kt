@@ -1,5 +1,6 @@
 package com.loki.opt.ui.new_schedule
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -14,13 +15,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBackIos
 import androidx.compose.material.icons.filled.AccessTimeFilled
 import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -28,8 +27,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TimePicker
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -50,25 +47,20 @@ import com.loki.opt.ui.viewModel.ScheduleEvent
 import com.loki.opt.ui.viewModel.ScheduleState
 import com.loki.opt.util.TimeUtil
 import com.loki.opt.util.ext.toTwoDigit
-import com.ramcosta.composedestinations.annotation.Destination
-import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 
-@Destination(
-    navArgsDelegate = NewScheduleNavArgs::class
-)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NewScheduleScreen(
-    navigator: DestinationsNavigator,
     optViewModel: OptViewModel,
     scheduleState: ScheduleState,
-    navArgs: NewScheduleNavArgs
+    isEditScreen: Boolean,
+    navigateBack: () -> Unit
 ) {
 
-    val suggestedTime = TimeUtil.getSuggestedTime()
+    val (hour, minute) = TimeUtil.getSuggestedTime()
 
-    var selectedHour by remember { mutableIntStateOf(suggestedTime.first) }
-    var selectedMinute by remember { mutableIntStateOf(suggestedTime.second) }
+    var selectedHour by remember { mutableIntStateOf(hour) }
+    var selectedMinute by remember { mutableIntStateOf(minute) }
     var showDialog by remember { mutableStateOf(false) }
     val timePickerState = rememberTimePickerState(
         initialHour = selectedHour,
@@ -76,26 +68,11 @@ fun NewScheduleScreen(
         is24Hour = false
     )
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(text = stringResource(R.string.schedule))
-                },
-                navigationIcon = {
-                    IconButton(onClick = navigator::navigateUp) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBackIos,
-                            contentDescription = "icon_back"
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background
-                )
-            )
-        }
-    ) { padding ->
+    BackHandler {
+        navigateBack()
+    }
+
+    Scaffold { padding ->
 
         Box(
             modifier = Modifier
@@ -223,7 +200,7 @@ fun NewScheduleScreen(
                                 )
                                 Text(
                                     text = if (scheduleState.offTime.isNotBlank()) scheduleState.offTime
-                                    else "${suggestedTime.first.toTwoDigit()}:${suggestedTime.second.toTwoDigit()}",
+                                    else "${hour.toTwoDigit()}:${minute.toTwoDigit()}",
                                     color = MaterialTheme.colorScheme.primary
                                 )
                             }
@@ -251,12 +228,12 @@ fun NewScheduleScreen(
                 horizontalArrangement = Arrangement.End
             ) {
 
-                if (navArgs.isEditScreen) {
+                if (isEditScreen) {
 
                     TextButton(
                         onClick = {
                             optViewModel.onScheduleEvent(ScheduleEvent.OnDeleteSchedule)
-                            navigator.navigateUp()
+                            navigateBack()
                         },
                         colors = ButtonDefaults.textButtonColors(
                             containerColor = MaterialTheme.colorScheme.error.copy(.5f),
@@ -282,7 +259,7 @@ fun NewScheduleScreen(
                             )
                         )
                         optViewModel.onScheduleEvent(ScheduleEvent.OnSchedule)
-                        navigator.navigateUp()
+                        navigateBack()
                     },
                     enabled = scheduleState.title.isNotBlank(),
                     colors = ButtonDefaults.textButtonColors(

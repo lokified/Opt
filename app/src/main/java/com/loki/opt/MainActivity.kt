@@ -14,9 +14,7 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.loki.opt.ui.NavGraphs
 import com.loki.opt.ui.destinations.HomeScreenDestination
-import com.loki.opt.ui.destinations.NewScheduleScreenDestination
 import com.loki.opt.ui.home.HomeScreen
-import com.loki.opt.ui.new_schedule.NewScheduleScreen
 import com.loki.opt.ui.theme.OptTheme
 import com.loki.opt.ui.viewModel.OptViewModel
 import com.ramcosta.composedestinations.DestinationsNavHost
@@ -72,15 +70,6 @@ class MainActivity : ComponentActivity() {
                                     navigator = destinationsNavigator,
                                     optViewModel = optViewModel,
                                     scheduleState = state
-                                )
-                            }
-
-                            composable(NewScheduleScreenDestination) {
-                                NewScheduleScreen(
-                                    navigator = destinationsNavigator,
-                                    optViewModel = optViewModel,
-                                    scheduleState = state,
-                                    navArgs = navArgs
                                 )
                             }
                         }
