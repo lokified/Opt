@@ -13,22 +13,15 @@ class MusicManager @Inject constructor(
 
     private val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
 
-    private val audioChangeListener =
-        AudioManager.OnAudioFocusChangeListener { focusChanged ->
-            when(focusChanged) {
-                AudioManager.AUDIOFOCUS_GAIN -> {}
-            }
-        }
-
+    // requests audio focus and stops music
     fun stopBackgroundMusic() {
 
         val result = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             audioManager.requestAudioFocus(
                 AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN)
-                    .setOnAudioFocusChangeListener(audioChangeListener).build()
+                    .build()
             )
-        }
-        else {
+        } else {
             audioManager.requestAudioFocus(
                 null,
                 AudioManager.STREAM_ALARM,
@@ -36,9 +29,21 @@ class MusicManager @Inject constructor(
             )
         }
 
-        if (result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
-            audioManager.dispatchMediaKeyEvent(KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_MEDIA_STOP))
-            audioManager.dispatchMediaKeyEvent(KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_MEDIA_STOP))
+        when (result) {
+            AudioManager.AUDIOFOCUS_GAIN -> {
+                audioManager.dispatchMediaKeyEvent(
+                    KeyEvent(
+                        KeyEvent.ACTION_DOWN,
+                        KeyEvent.KEYCODE_MEDIA_STOP
+                    )
+                )
+                audioManager.dispatchMediaKeyEvent(
+                    KeyEvent(
+                        KeyEvent.ACTION_UP,
+                        KeyEvent.KEYCODE_MEDIA_STOP
+                    )
+                )
+            }
         }
     }
 }

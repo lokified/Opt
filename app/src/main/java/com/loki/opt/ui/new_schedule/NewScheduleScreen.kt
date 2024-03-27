@@ -58,9 +58,10 @@ fun NewScheduleScreen(
 ) {
 
     val (hour, minute) = TimeUtil.getSuggestedTime()
+    val (currentHour, currentMinute) = TimeUtil.getCurrentTime()
 
-    var selectedHour by remember { mutableIntStateOf(hour) }
-    var selectedMinute by remember { mutableIntStateOf(minute) }
+    var selectedHour by remember { mutableIntStateOf(currentHour) }
+    var selectedMinute by remember { mutableIntStateOf(currentMinute) }
     var showDialog by remember { mutableStateOf(false) }
     val timePickerState = rememberTimePickerState(
         initialHour = selectedHour,
