@@ -27,4 +27,8 @@
     <string name="select_lock_time">Select Lock Time</string>
     <string name="lock_name_title">Lock name title</string>
     <string name="confirm">Confirm</string>
+    <string name="notifications">Notifications</string>
+    <string name="full_screen_notifications">Full screen notifications</string>
+    <string name="this_will_show_a_full_screen_notification">This will show a full screen notification 5 minutes before screen locks</string>
+    <string name="opt_will_automatically_lock">Opt will automatically lock your Screen in 5 minutes</string>
 </resources>

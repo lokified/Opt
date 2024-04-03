@@ -4,6 +4,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import com.loki.opt.data.datastore.DataStoreStorage.SettingPreference.FIRST_LAUNCH
+import com.loki.opt.data.datastore.DataStoreStorage.SettingPreference.FULL_SCREEN_NOTIFICATION
 import com.loki.opt.data.datastore.DataStoreStorage.SettingPreference.MUSIC_TO_STOP
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -16,14 +17,16 @@ class DataStoreStorageImpl @Inject constructor(
     override suspend fun setActivitySetting(activitySetting: ActivitySetting) {
         datastore.edit { preference ->
             preference[MUSIC_TO_STOP] = activitySetting.isMusicToStop
+            preference[FULL_SCREEN_NOTIFICATION] = activitySetting.isFullScreenNotification
         }
     }
 
     override fun getActivitySetting(): Flow<ActivitySetting> {
         return datastore.data.map { preference ->
             val isMusicToStop = preference[MUSIC_TO_STOP] ?: false
+            val isFullScreenNotification = preference[FULL_SCREEN_NOTIFICATION] ?: false
 
-            ActivitySetting(isMusicToStop)
+            ActivitySetting(isMusicToStop, isFullScreenNotification)
         }
     }
 

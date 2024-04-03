@@ -1,15 +1,15 @@
 package com.loki.opt.worker
 
 import android.content.Context
+import android.content.Intent
+import android.provider.Settings
 import androidx.compose.runtime.mutableStateOf
-import androidx.core.app.NotificationCompat
 import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
-import androidx.work.ForegroundInfo
 import androidx.work.WorkerParameters
+import com.loki.opt.ForegroundService
 import com.loki.opt.MusicManager
 import com.loki.opt.PolicyManager
-import com.loki.opt.R
 import com.loki.opt.data.database.Schedule
 import com.loki.opt.data.datastore.DataStoreStorage
 import com.loki.opt.data.repository.OptRepository
@@ -22,7 +22,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.util.Calendar
-import java.util.Random
 
 @HiltWorker
 class LockScreenWorker @AssistedInject constructor(
@@ -48,17 +47,29 @@ class LockScreenWorker @AssistedInject constructor(
 
                 for (schedule in schedules.value) {
 
-                    if (isTimeToLock(it, schedule.offTime) && schedule.isEnabled) {
+                    val activitySetting = datastore.getActivitySetting().first()
 
-                        delay(5000L)
+                    if (schedule.isEnabled) {
 
-                        val activitySetting = datastore.getActivitySetting().first()
-
-                        if (activitySetting.isMusicToStop) {
-                            musicManager.stopBackgroundMusic()
+                        if (
+                            activitySetting.isFullScreenNotification &&
+                            Settings.canDrawOverlays(context) &&
+                            isTimeToShowNotification(it, schedule.offTime)
+                        ) {
+                            context.startService(Intent(context, ForegroundService::class.java))
                         }
 
-                        policyManager.lockScreen()
+                        if (isTimeToLock(it, schedule.offTime)) {
+
+                            delay(2000L)
+
+                            if (activitySetting.isMusicToStop) {
+                                musicManager.stopBackgroundMusic()
+                            }
+
+                            policyManager.lockScreen()
+                            context.stopService(Intent(context, ForegroundService::class.java))
+                        }
                     }
                 }
             }
@@ -98,15 +109,15 @@ class LockScreenWorker @AssistedInject constructor(
         return time == currTime
     }
 
-    override suspend fun getForegroundInfo(): ForegroundInfo {
-        return ForegroundInfo(
-            Random().nextInt(),
-            NotificationCompat.Builder(context, "lockscreen_channel")
-                .setSmallIcon(R.mipmap.ic_opt_launcher)
-                .setContentTitle("Opt Lock Screen")
-                .setContentText("Lock Screen Activated")
-                .setAutoCancel(true)
-                .build()
-        )
+    private fun isTimeToShowNotification(currentTime: Calendar, savedTime: String): Boolean {
+
+        val timeArr = savedTime.split(":")
+        val minute = timeArr[1].toSingleDigit()
+
+        val currentMinute = currentTime.get(Calendar.MINUTE)
+
+        val minuteDifference = minute.toInt() - currentMinute
+
+        return minuteDifference == 5 || minuteDifference == -5
     }
 }

@@ -13,6 +13,7 @@ interface DataStoreStorage {
 
     object SettingPreference {
         val MUSIC_TO_STOP = booleanPreferencesKey("music_stop_key")
+        val FULL_SCREEN_NOTIFICATION = booleanPreferencesKey("full_screen_notification_key")
         val FIRST_LAUNCH = booleanPreferencesKey("first_launch")
     }
 }
