@@ -2,7 +2,6 @@ package com.loki.opt.ui.settings
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.loki.opt.data.datastore.ActivitySetting
 import com.loki.opt.data.datastore.DataStoreStorage
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -13,7 +12,7 @@ import javax.inject.Inject
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     private val datastore: DataStoreStorage
-): ViewModel() {
+) : ViewModel() {
 
     private val _state = MutableStateFlow(SettingState())
     val state = _state.asStateFlow()
@@ -23,8 +22,11 @@ class SettingsViewModel @Inject constructor(
     }
 
     fun onSettingsEvent(settingsEvent: SettingsEvent) {
-        when(settingsEvent) {
+        when (settingsEvent) {
             is SettingsEvent.OnMusicPlayingChange -> onMusicPlayingChange(settingsEvent.isMusicToStop)
+            is SettingsEvent.OnFullScreenNotificationChange -> onFullScreenNotificationChange(
+                settingsEvent.isFullScreenNotification
+            )
         }
     }
 
@@ -33,7 +35,8 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             datastore.getActivitySetting().collect { activity ->
                 _state.value = SettingState(
-                    musicToStop = activity.isMusicToStop
+                    musicToStop = activity.isMusicToStop,
+                    fullScreenNotification = activity.isFullScreenNotification
                 )
             }
         }
@@ -42,14 +45,26 @@ class SettingsViewModel @Inject constructor(
     private fun onMusicPlayingChange(isMusicToStop: Boolean) {
         viewModelScope.launch {
             datastore.setActivitySetting(
-                ActivitySetting(
-                    isMusicToStop = isMusicToStop
-                )
+                _state.value.copy(
+                    musicToStop = isMusicToStop
+                ).toActivitySetting()
+            )
+        }
+    }
+
+    private fun onFullScreenNotificationChange(isFullScreenNotification: Boolean) {
+        viewModelScope.launch {
+            datastore.setActivitySetting(
+                _state.value.copy(
+                    fullScreenNotification = isFullScreenNotification
+                ).toActivitySetting()
             )
         }
     }
 }
 
 sealed class SettingsEvent {
-    data class OnMusicPlayingChange(val isMusicToStop: Boolean): SettingsEvent()
+    data class OnMusicPlayingChange(val isMusicToStop: Boolean) : SettingsEvent()
+    data class OnFullScreenNotificationChange(val isFullScreenNotification: Boolean) :
+        SettingsEvent()
 }

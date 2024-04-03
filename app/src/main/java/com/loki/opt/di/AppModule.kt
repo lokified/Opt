@@ -3,12 +3,9 @@ package com.loki.opt.di
 import android.app.Application
 import android.content.Context
 import androidx.room.Room
-import com.loki.opt.MusicManager
-import com.loki.opt.PolicyManager
 import com.loki.opt.data.database.OptDatabase
 import com.loki.opt.data.repository.OptRepository
 import com.loki.opt.data.repository.OptRepositoryImpl
-import com.loki.opt.worker.WorkInitializer
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -41,23 +38,5 @@ object AppModule {
     @Provides
     fun provideAppContext(@ApplicationContext context: Context): Context {
         return context
-    }
-
-    @Singleton
-    @Provides
-    fun providePolicyManager(@ApplicationContext context: Context): PolicyManager {
-        return PolicyManager(context)
-    }
-
-    @Singleton
-    @Provides
-    fun provideMusicManager(@ApplicationContext context: Context): MusicManager {
-        return MusicManager(context)
-    }
-
-    @Singleton
-    @Provides
-    fun provideWork(@ApplicationContext context: Context): WorkInitializer {
-        return WorkInitializer(context)
     }
 }

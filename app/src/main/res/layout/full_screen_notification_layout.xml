@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#10110f">
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:padding="16dp"
+        android:orientation="vertical"
+        android:gravity="center">
+
+        <ImageView
+            android:layout_width="200dp"
+            android:layout_height="350dp"
+            android:src="@drawable/time"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="@string/opt_will_automatically_lock"
+            android:textSize="32sp"
+            android:textColor="#ffffff"
+            android:textAlignment="center"
+            android:fontFamily="sans-serif-medium"/>
+
+        <TextView
+            android:id="@+id/counter_txt"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="32sp"
+            android:fontFamily="sans-serif-medium"
+            android:textAlignment="center"
+            android:textColor="#ffffff"
+            android:layout_marginTop="8dp"
+            tools:text="05:00"/>
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_weight="1"/>
+
+        <ImageView
+            android:id="@+id/btn_close"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:src="@drawable/ic_close"
+            android:background="@drawable/btn_bg"/>
+
+    </LinearLayout>
+
+
+</LinearLayout>
