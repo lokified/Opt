@@ -33,10 +33,4 @@ object AppModule {
     fun provideScheduleDao(optDatabase: OptDatabase): OptRepository {
         return OptRepositoryImpl(optDatabase.optDao)
     }
-
-    @Singleton
-    @Provides
-    fun provideAppContext(@ApplicationContext context: Context): Context {
-        return context
-    }
 }

@@ -1,14 +1,15 @@
-package com.loki.opt
+package com.loki.opt.services
 
 import android.content.Context
 import android.media.AudioFocusRequest
 import android.media.AudioManager
 import android.os.Build
 import android.view.KeyEvent
+import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 
 class MusicManager @Inject constructor(
-    context: Context
+    @ApplicationContext private val context: Context
 ) {
 
     private val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
