@@ -1,4 +1,4 @@
-package com.loki.opt
+package com.loki.opt.notification
 
 import android.app.Notification
 import android.app.NotificationChannel
@@ -10,8 +10,9 @@ import android.os.Build
 import android.os.IBinder
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
+import com.loki.opt.R
 
-class ForegroundService : Service() {
+class NotificationForegroundService : Service() {
 
     private lateinit var fullScreenNotificationView: FullScreenNotificationView
 
@@ -25,7 +26,7 @@ class ForegroundService : Service() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             startMyForeground()
         } else {
-            startForeground(1, Notification())
+            startForeground(4, Notification())
         }
 
         fullScreenNotificationView = FullScreenNotificationView(applicationContext)
@@ -54,15 +55,13 @@ class ForegroundService : Service() {
         notificationManager.createNotificationChannel(channel)
 
         val notification = NotificationCompat.Builder(applicationContext, "Full_Lockscreen_channel")
-            .setContentTitle("Opt Lock Screen")
+            .setContentTitle("Opt Lock Notification")
             .setSmallIcon(R.mipmap.ic_opt_launcher)
             .setPriority(NotificationManager.IMPORTANCE_HIGH)
             .setCategory(Notification.CATEGORY_SERVICE)
-            .setSound(
-                RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
-            )
+            .setAutoCancel(true)
             .build()
 
-        startForeground(2, notification)
+        startForeground(3, notification)
     }
 }

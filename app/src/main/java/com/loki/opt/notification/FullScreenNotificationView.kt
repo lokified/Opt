@@ -1,4 +1,4 @@
-package com.loki.opt
+package com.loki.opt.notification
 
 import android.content.Context
 import android.content.Intent
@@ -10,6 +10,9 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.WindowManager
 import android.widget.ImageView
+import com.loki.opt.R
+import com.loki.opt.util.stopNotifService
+import timber.log.Timber
 
 class FullScreenNotificationView(
     private val context: Context
@@ -31,8 +34,10 @@ class FullScreenNotificationView(
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
                 WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
             else
-                WindowManager.LayoutParams.TYPE_SYSTEM_OVERLAY,
-            WindowManager.LayoutParams.FLAG_FULLSCREEN,
+                WindowManager.LayoutParams.TYPE_PHONE,
+            WindowManager.LayoutParams.FLAG_FULLSCREEN or
+            WindowManager.LayoutParams.FLAG_LAYOUT_INSET_DECOR or
+            WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
             PixelFormat.TRANSLUCENT
         )
 
@@ -53,7 +58,7 @@ class FullScreenNotificationView(
                 windowManager?.addView(overlayView, params)
             }
         } catch (e: Exception) {
-            Log.d("window open", e.toString())
+            Timber.d("window open", e.toString())
         }
     }
 
@@ -63,10 +68,10 @@ class FullScreenNotificationView(
                 windowManager?.removeView(it)
                 overlayView = null
                 params = null
-                context.stopService(Intent(context, ForegroundService::class.java))
+                context.stopNotifService()
             }
         } catch (e: Exception) {
-            Log.d("window close", e.toString())
+            Timber.d("window close", e.toString())
         }
     }
 }
