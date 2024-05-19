@@ -46,7 +46,7 @@ import com.loki.opt.ui.viewModel.OptViewModel
 import com.loki.opt.ui.viewModel.ScheduleEvent
 import com.loki.opt.ui.viewModel.ScheduleState
 import com.loki.opt.util.TimeUtil
-import com.loki.opt.util.ext.toTwoDigit
+import com.loki.opt.util.toTwoDigit
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

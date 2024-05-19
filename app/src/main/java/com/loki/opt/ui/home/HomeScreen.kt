@@ -53,7 +53,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.loki.opt.MyDeviceAdminReceiver
+import com.loki.opt.services.MyDeviceAdminReceiver
 import com.loki.opt.R
 import com.loki.opt.data.database.Schedule
 import com.loki.opt.ui.components.AdminPermissionPanel
@@ -164,6 +164,7 @@ fun HomeScreen(
                         onEnable = {
                             optViewModel.onScheduleEvent(
                                 ScheduleEvent.OnEnableSchedule(
+                                    title = schedule.title,
                                     isEnabled = it,
                                     scheduleId = schedule.id
                                 )
