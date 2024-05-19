@@ -8,6 +8,7 @@ import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
 import androidx.work.WorkManager
 import dagger.hilt.android.HiltAndroidApp
+import timber.log.Timber
 import javax.inject.Inject
 
 @HiltAndroidApp
@@ -25,6 +26,7 @@ class OptApp : Application(), Configuration.Provider {
 
     override fun onCreate() {
         super.onCreate()
+        initTimber()
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
@@ -41,5 +43,20 @@ class OptApp : Application(), Configuration.Provider {
             this,
             Configuration.Builder().setWorkerFactory(workerFactory).build()
         )
+
+    }
+
+    private fun initTimber() = when {
+        BuildConfig.DEBUG -> {
+            Timber.plant(object : Timber.DebugTree() {
+                override fun createStackElementTag(element: StackTraceElement): String? {
+                    return super.createStackElementTag(element) + ":" + element.lineNumber
+                }
+            })
+        }
+
+        else -> {
+            Timber.plant(CrashlyticsTree())
+        }
     }
 }
