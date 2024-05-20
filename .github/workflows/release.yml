@@ -5,10 +5,6 @@ on:
       name:
         description: "Release_Build"
         default: "Generates release build"
-      draft:
-        description: "Create a draft release"
-        default: "true"
-        required: false
 
 jobs:
   build:
@@ -76,8 +72,8 @@ jobs:
         with:
           tag_name: v0.1.3
           release_name: Opt v0.1.3
-          body: "-This version has changes on how lock schedule is handled\n-Add notification permission on android 12 and above"
-          draft: ${{ github.event.inputs.draft }}
+          body: "-This version has changes on how lock schedule is handled.\n- Add notification permission on android 12 and above"
+          draft: false
           prerelease: false
 
       - name: Upload Release Asset
