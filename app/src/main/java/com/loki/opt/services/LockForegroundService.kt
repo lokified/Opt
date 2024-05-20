@@ -108,7 +108,7 @@ class LockForegroundService: Service() {
 
         val notification = NotificationCompat.Builder(applicationContext, "lockscreen_channel")
             .setContentTitle("Opt Lock Screen Activated")
-            .setSmallIcon(R.mipmap.ic_opt_launcher)
+            .setSmallIcon(R.mipmap.opt_icon_launcher)
             .setPriority(NotificationManager.IMPORTANCE_MIN)
             .setCategory(Notification.CATEGORY_SERVICE)
             .addAction(
@@ -157,6 +157,7 @@ class LockForegroundService: Service() {
 
                             policyManager.lockScreen()
                             context.stopNotifService()
+                            context.stopLockService()
                         }
                     }
                 }

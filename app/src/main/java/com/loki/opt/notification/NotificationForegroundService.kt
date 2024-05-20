@@ -56,7 +56,7 @@ class NotificationForegroundService : Service() {
 
         val notification = NotificationCompat.Builder(applicationContext, "Full_Lockscreen_channel")
             .setContentTitle("Opt Lock Notification")
-            .setSmallIcon(R.mipmap.ic_opt_launcher)
+            .setSmallIcon(R.mipmap.opt_icon_launcher)
             .setPriority(NotificationManager.IMPORTANCE_HIGH)
             .setCategory(Notification.CATEGORY_SERVICE)
             .setAutoCancel(true)
