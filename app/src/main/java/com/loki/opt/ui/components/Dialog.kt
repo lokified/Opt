@@ -1,5 +1,6 @@
 package com.loki.opt.ui.components
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -7,7 +8,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -25,8 +25,10 @@ import com.loki.opt.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AdminPermissionPanel(
+fun PermissionDialog(
     modifier: Modifier = Modifier,
+    @StringRes title: Int,
+    @StringRes content: Int,
     onDismiss: () -> Unit,
     onRequest: () -> Unit
 ) {
@@ -47,7 +49,7 @@ fun AdminPermissionPanel(
         ) {
 
             Text(
-                text = stringResource(R.string.admin_permission_request),
+                text = stringResource(title),
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center,
@@ -55,7 +57,7 @@ fun AdminPermissionPanel(
             )
 
             Text(
-                text = stringResource(R.string.give_permission_to_opt_app),
+                text = stringResource(content),
                 style = MaterialTheme.typography.bodyLarge,
                 fontWeight = FontWeight.Light,
                 textAlign = TextAlign.Center,

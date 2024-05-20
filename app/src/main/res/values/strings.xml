@@ -31,4 +31,8 @@
     <string name="full_screen_notifications">Full screen notifications</string>
     <string name="this_will_show_a_full_screen_notification">This will show a full screen notification 5 minutes before screen locks</string>
     <string name="opt_will_automatically_lock">Opt will automatically lock your Screen in 5 minutes</string>
+    <string name="notification_permission_request">Notification Permission Request</string>
+    <string name="permission_is_required_to_show_notifications">Permission is required to show notifications. Please enable it in app settings</string>
+    <string name="permission_granted">Permission Granted</string>
+    <string name="permission_not_granted">Permission not granted</string>
 </resources>

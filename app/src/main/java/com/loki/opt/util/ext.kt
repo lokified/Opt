@@ -2,6 +2,8 @@ package com.loki.opt.util
 
 import android.content.Context
 import android.content.Intent
+import android.widget.Toast
+import androidx.annotation.StringRes
 import com.loki.opt.notification.NotificationForegroundService
 import com.loki.opt.services.LockForegroundService
 
@@ -28,4 +30,12 @@ fun Context.startLockService() {
 
 fun Context.stopLockService() {
     stopService(Intent(this, LockForegroundService::class.java))
+}
+
+fun Context.showToast(@StringRes message: Int, length: Int = Toast.LENGTH_LONG) {
+    Toast.makeText(
+        this,
+        message,
+        length
+    ).show()
 }
