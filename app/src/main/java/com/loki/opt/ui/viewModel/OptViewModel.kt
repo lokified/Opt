@@ -3,7 +3,7 @@ package com.loki.opt.ui.viewModel
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.loki.opt.PolicyManager
+import com.loki.opt.services.PolicyManager
 import com.loki.opt.data.database.Schedule
 import com.loki.opt.data.datastore.DataStoreStorage
 import com.loki.opt.data.repository.OptRepository
@@ -60,6 +60,7 @@ class OptViewModel @Inject constructor(
             }
 
             is ScheduleEvent.OnEnableSchedule -> enableSchedule(
+                scheduleEvent.title,
                 scheduleEvent.isEnabled,
                 scheduleEvent.scheduleId
             )
@@ -91,9 +92,8 @@ class OptViewModel @Inject constructor(
                     isEnabled = true
                 )
             )
+            workInitializer.initialize(workName = "lock screen ${_state.value.title}")
         }
-
-        workInitializer.initialize(workName = "lock screen ${_state.value.title}")
     }
 
     private fun deleteSchedule() {
@@ -106,14 +106,16 @@ class OptViewModel @Inject constructor(
                     isEnabled = _state.value.isEnabled
                 )
             )
+            workInitializer.cancelWork("lock screen ${_state.value.title}")
         }
-
-        workInitializer.workManager.cancelUniqueWork("lock screen ${_state.value.title}")
     }
 
-    private fun enableSchedule(isEnabled: Boolean, scheduleId: Int) {
+    private fun enableSchedule(title: String, isEnabled: Boolean, scheduleId: Int) {
         viewModelScope.launch {
             optRepository.enableSchedule(isEnabled, scheduleId)
+            if (isEnabled) {
+                workInitializer.initialize(workName = "lock screen $title")
+            }
         }
     }
 
@@ -141,7 +143,7 @@ sealed class ScheduleEvent {
 
     data object OnSchedule : ScheduleEvent()
     data class OnEditSchedule(val schedule: Schedule) : ScheduleEvent()
-    data class OnEnableSchedule(val isEnabled: Boolean, val scheduleId: Int) : ScheduleEvent()
+    data class OnEnableSchedule(val title: String, val isEnabled: Boolean, val scheduleId: Int) : ScheduleEvent()
     data object OnDeleteSchedule : ScheduleEvent()
     data class TitleChangeEvent(val title: String) : ScheduleEvent()
     data class OffTimeChangeEvent(val offTime: String) : ScheduleEvent()

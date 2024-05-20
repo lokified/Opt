@@ -4,24 +4,29 @@ import android.content.Context
 import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
+import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 
 class WorkInitializer @Inject constructor(
-    private val context: Context
+    @ApplicationContext private val context: Context
 ) {
 
-    val workManager: WorkManager = WorkManager.getInstance(context)
+    private val workManager: WorkManager = WorkManager.getInstance(context)
 
     fun initialize(workName: String) {
         val request = OneTimeWorkRequestBuilder<LockScreenWorker>()
             .build()
 
-        WorkManager.getInstance(context).apply {
+        workManager.apply {
             enqueueUniqueWork(
                 workName,
                 ExistingWorkPolicy.APPEND_OR_REPLACE,
                 request
             )
         }
+    }
+
+    fun cancelWork(workName: String) {
+        workManager.cancelUniqueWork(workName)
     }
 }

@@ -5,7 +5,9 @@ import android.app.admin.DevicePolicyManager
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
-import android.widget.Toast
+import android.net.Uri
+import android.os.Build
+import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
@@ -53,10 +55,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.loki.opt.MyDeviceAdminReceiver
+import com.loki.opt.services.MyDeviceAdminReceiver
 import com.loki.opt.R
 import com.loki.opt.data.database.Schedule
-import com.loki.opt.ui.components.AdminPermissionPanel
+import com.loki.opt.ui.components.PermissionDialog
 import com.loki.opt.ui.components.HomeTopBar
 import com.loki.opt.ui.components.NewScheduleTopBar
 import com.loki.opt.ui.destinations.SettingsScreenDestination
@@ -64,6 +66,7 @@ import com.loki.opt.ui.new_schedule.NewScheduleScreen
 import com.loki.opt.ui.viewModel.OptViewModel
 import com.loki.opt.ui.viewModel.ScheduleEvent
 import com.loki.opt.ui.viewModel.ScheduleState
+import com.loki.opt.util.showToast
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 
@@ -84,33 +87,54 @@ fun HomeScreen(
 
     val context = LocalContext.current
     var isEditScreen by remember { mutableStateOf(false) }
-    var isAdminPanelVisible by remember { mutableStateOf(false) }
+    var isAdminDialogVisible by remember { mutableStateOf(false) }
+    var isNotificationDialogVisible by remember { mutableStateOf(false) }
     var containerState by remember { mutableStateOf(ContainerState.Fab) }
+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        NotificationPermissionRequest(
+            context = context,
+            onGrantedPermission = { isGranted ->
+                if (isGranted) {
+                    if (!isAdminEnabled) {
+                        isAdminDialogVisible = true
+                    }
+                } else {
+                    isNotificationDialogVisible = true
+                }
+            }
+        )
+    } else {
+        LaunchedEffect(key1 = Unit) {
+            if (!isAdminEnabled) {
+                isAdminDialogVisible = true
+            }
+        }
+    }
+
+    val settingsLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) {  result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            isNotificationDialogVisible = false
+            if (!isAdminEnabled) {
+                isAdminDialogVisible = true
+            }
+            context.showToast(R.string.permission_granted)
+        } else {
+            context.showToast(R.string.permission_not_granted)
+        }
+    }
 
     val deviceAdminLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
     ) { result ->
 
         if (result.resultCode == Activity.RESULT_OK) {
-            isAdminPanelVisible = false
-
-            Toast.makeText(
-                context,
-                context.getString(R.string.opt_is_now_an_admin),
-                Toast.LENGTH_LONG
-            ).show()
+            isAdminDialogVisible = false
+            context.showToast(R.string.opt_is_now_an_admin)
         } else {
-            Toast.makeText(
-                context,
-                context.getString(R.string.admin_permission_cancelled),
-                Toast.LENGTH_LONG
-            ).show()
-        }
-    }
-
-    LaunchedEffect(key1 = Unit) {
-        if (!isAdminEnabled) {
-            isAdminPanelVisible = true
+            context.showToast(R.string.admin_permission_cancelled)
         }
     }
 
@@ -148,11 +172,27 @@ fun HomeScreen(
                 }
             }
 
-            if (isAdminPanelVisible) {
-                AdminPermissionPanel(
+            if (isAdminDialogVisible) {
+                PermissionDialog(
+                    title = R.string.admin_permission_request,
+                    content = R.string.give_permission_to_opt_app,
                     onDismiss = {},
                     onRequest = {
-                        deviceAdminLauncher.launch(requestPermission(context))
+                        deviceAdminLauncher.launch(requestAdminPermission(context))
+                    }
+                )
+            }
+
+            if (isNotificationDialogVisible) {
+                PermissionDialog(
+                    title = R.string.notification_permission_request,
+                    content = R.string.permission_is_required_to_show_notifications,
+                    onDismiss = {},
+                    onRequest = {
+                        val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                            data = Uri.fromParts("package", context.packageName, null)
+                        }
+                        settingsLauncher.launch(intent)
                     }
                 )
             }
@@ -164,6 +204,7 @@ fun HomeScreen(
                         onEnable = {
                             optViewModel.onScheduleEvent(
                                 ScheduleEvent.OnEnableSchedule(
+                                    title = schedule.title,
                                     isEnabled = it,
                                     scheduleId = schedule.id
                                 )
@@ -384,17 +425,4 @@ fun ScheduleItem(
             Switch(checked = schedule.isEnabled, onCheckedChange = onEnable)
         }
     }
-}
-
-fun requestPermission(context: Context): Intent {
-    val intent = Intent(DevicePolicyManager.ACTION_ADD_DEVICE_ADMIN)
-    intent.putExtra(
-        DevicePolicyManager.EXTRA_DEVICE_ADMIN,
-        ComponentName(context, MyDeviceAdminReceiver::class.java)
-    )
-    intent.putExtra(
-        DevicePolicyManager.EXTRA_ADD_EXPLANATION,
-        context.getString(R.string.the_app_needs_admin)
-    )
-    return intent
 }
