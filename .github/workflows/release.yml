@@ -61,7 +61,7 @@ jobs:
         run: ./gradlew bundleRelease --stacktrace
 
       - name: Upload Release Build to artifacts
-        uses: actions/upload-artifacts@v3
+        uses: actions/upload-artifact@v3
         with:
           name: release-artifacts
           path: |
